@@ -188,11 +188,11 @@ class Deck
     }
 }
 
-public class Card
+public struct Card
 {
     public readonly Suit suit;
     public readonly Rank rank;
-    public int index;
+    public readonly int index;
 
     public Card(Suit suit, Rank rank, int index)
     {
