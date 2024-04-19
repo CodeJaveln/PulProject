@@ -40,7 +40,8 @@ public class GameScript : MonoBehaviour
     }
 
     // TODO:
-    // Deal cards: Done
+    // Multiplayer
+    // Deal cards
     // Get player input on bets
     // Show other players bets
     // Show stack and hold which player that starts
