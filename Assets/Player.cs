@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Netcode;
+﻿using Unity.Netcode;
 
 class Player : NetworkBehaviour
 {
@@ -18,6 +13,6 @@ class Player : NetworkBehaviour
 
     public Card CardToStack()
     {
-        return new Card(Suit.Clubs, Rank.Jack, -1);
+        return new Card(Suit.Joker, Rank.Ace, -1);
     }
 }
