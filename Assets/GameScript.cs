@@ -157,3 +157,8 @@ public class GameScript : NetworkBehaviour
         return true;
     }
 }
+
+public static class Globals
+{
+    public static int amountOfPlayers;
+}
