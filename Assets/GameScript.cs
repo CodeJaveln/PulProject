@@ -1,16 +1,17 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Random = UnityEngine.Random;
+using Unity.Netcode;
 
-public class GameScript : MonoBehaviour
+public class GameScript : NetworkBehaviour
 {
-    [SerializeField] TextMeshProUGUI roundText;
-    [SerializeField] TextMeshProUGUI stackText;
+    //[SerializeField] TextMeshProUGUI roundText;
+    //[SerializeField] TextMeshProUGUI stackText;
+
+    public static GameScript Instance;
 
     private Deck deck;
     private int round;
@@ -21,8 +22,28 @@ public class GameScript : MonoBehaviour
     private Dictionary<int, List<Card>> playerHands;
     private int currentPlayerIndex;
 
+    private int numberOfPlayers;
+
     void Start()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        } 
+
+        if (!IsServer) return;
+
+        NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
+        {
+            numberOfPlayers++;
+        };
+
+        NetworkManager.Singleton.OnClientDisconnectCallback += (id) =>
+        {
+            numberOfPlayers--;
+        };
+
+
         deck = new Deck();
         
         round = 1;
@@ -52,8 +73,8 @@ public class GameScript : MonoBehaviour
 
     void Update()
     {
-        roundText.text = $"Round: {round}";
-        stackText.text = $"Stack: {stack}";
+        //roundText.text = $"Round: {round}";
+        //stackText.text = $"Stack: {stack}";
 
         if (dealtCardsForRound == false)
         {
@@ -127,108 +148,4 @@ public class GameScript : MonoBehaviour
         // Card is eligible
         return true;
     }
-}
-
-class Deck
-{
-    private List<Card> cards;
-    public int cardsAmount
-    {
-        get => cards.Count;
-    }
-
-    public Deck()
-    {
-        Init();
-    }
-
-    public void Init()
-    {
-        // 52 kort och tre jokrar
-        cards = new List<Card>(55);
-
-        int index = 0;
-
-        // Går igenom alla färger och nummer för att skapa en av varje
-        foreach (Suit suit in Enum.GetValues(typeof(Suit)))
-        {
-            if (suit != Suit.Joker)
-            {
-                foreach (Rank rank in Enum.GetValues(typeof(Rank)))
-                {
-                    cards.Add(new Card(suit, rank, index));
-                    index++;
-                }
-            }
-        }
-
-        // Tre Jokrar
-        for (int i = 0; i < 3; i++)
-        {
-            cards.Add(new Card(Suit.Joker, Rank.Ace, index));
-            index++;
-        }
-    }
-
-    public void Shuffle()
-    {
-        // Fisher-Yates metoden
-        for (int n = cards.Count; 1 < n; n--)
-        {
-            int k = Random.Range(0, n + 1);
-            (cards[n], cards[k]) = (cards[k], cards[n]);
-        }
-    }
-
-    public Card TopCard()
-    {
-        // Tar översta kortet
-        Card topCard = cards[0];
-        cards.Remove(topCard);
-        return topCard;
-    }
-}
-
-public struct Card
-{
-    public readonly Suit suit;
-    public readonly Rank rank;
-    public readonly int index;
-
-    public Card(Suit suit, Rank rank, int index)
-    {
-        this.suit = suit;
-        this.rank = rank;
-        this.index = index;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (!(obj is Card))
-            return false;
-
-        return Equals((Card)obj);
-    }
-
-    private bool Equals(Card card)
-    {
-        return suit == card.suit && rank == card.rank;
-    }
-
-    public override int GetHashCode()
-    {
-        return index;
-    }
-}
-
-public enum Suit
-{
-    Hearts, Diamonds, Clubs, Spades,
-    Joker,
-}
-
-public enum Rank
-{
-    Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten,
-    Jack, Queen, King, Ace,
 }
