@@ -71,8 +71,16 @@ public class GameScript : NetworkBehaviour
     // Repeat round until 20 rounds
     // Show who won all and start over if they want
 
+    [ServerRpc]
+    public void PlayCardServerRpc()
+    {
+
+    }
+
     void Update()
     {
+        return;
+
         //roundText.text = $"Round: {round}";
         //stackText.text = $"Stack: {stack}";
 
