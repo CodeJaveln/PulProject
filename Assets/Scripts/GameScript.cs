@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 using Unity.Netcode;
+using System.Text;
 
 public class GameScript : NetworkBehaviour
 {
@@ -13,33 +14,30 @@ public class GameScript : NetworkBehaviour
 
     public static GameScript Instance;
 
-    private Deck deck;
-    private int round;
-    private int stack;
+    private Deck Deck;
+    private int Round;
+    private int Stack;
 
     private bool dealtCardsForRound;
 
-    private Dictionary<int, List<Card>> playerHands;
+    private Dictionary<ulong, List<Card>> PlayerHands;
     private int currentPlayerIndex;
 
-    private int numberOfPlayers;
+    private int NumberOfPlayers;
 
     [SerializeField] private Button StartGameButton;
 
-    //public bool GameStarted
-    //{
-    //    get;
-    //    private set;
-    //}
-
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false);
-
 
     void Start()
     {
         if (Instance == null)
         {
             Instance = this;
+        } 
+        else 
+        {
+            Destroy(gameObject);
         }
 
         NetworkManager.Singleton.ConnectionApprovalCallback += (request, response) =>
@@ -53,35 +51,99 @@ public class GameScript : NetworkBehaviour
             }
         };
 
-
-        //if (!IsServer) return;
-
         NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
         {
-            numberOfPlayers++;
+            Debug.Log($"Player {id} connected!");
+            NumberOfPlayers++;
         };
 
         NetworkManager.Singleton.OnClientDisconnectCallback += (id) =>
         {
-            numberOfPlayers--;
+            Debug.Log($"Player {id} disconnected!");
+            NumberOfPlayers--;
         };
 
-        //NetworkManager.Singleton.ConnectedClientsIds
+        StartGameButton.onClick.AddListener(() =>
+        {
+            StartGame();
+        });
+    }
 
-        deck = new Deck();
+    public void StartGame()
+    {
+        Deck = new Deck();
         
-        round = 1;
-        stack = 1;
+        Round = 1;
+        Stack = 1;
 
         dealtCardsForRound = false;
 
-        playerHands = new Dictionary<int, List<Card>>(Globals.amountOfPlayers);
-        for (int i = 0; i < Globals.amountOfPlayers; i++)
+        PlayerHands = new Dictionary<ulong, List<Card>>();
+        for (int i = 0; i < NumberOfPlayers; i++)
         {
-            playerHands.Add(i, new List<Card>());
+            PlayerHands.Add(NetworkManager.Singleton.ConnectedClientsIds[i], new List<Card>());
         }
 
+        
+
         currentPlayerIndex = 0;
+
+        DealCards();
+
+        GameStarted.Value = true;
+    }
+
+    private void DealCards()
+    {
+        int amountOfCards = NumberOfStacks();
+
+        for (int i = 0; i < amountOfCards; i++)
+        {
+            foreach (var playerHand in PlayerHands)
+            {
+                playerHand.Value.Add(Deck.TopCard());
+            }
+        }
+
+        dealtCardsForRound = true;
+
+        foreach (var hand in PlayerHands)
+        {
+            ClientRpcParams clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[]
+                    {
+                        hand.Key
+                    }
+                }
+            };
+
+            string serializedHand = SerializeHand(hand.Value);
+
+            UpdateHandClientRpc(serializedHand, clientRpcParams);
+        }
+    }
+
+    private string SerializeHand(List<Card> hand) 
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        foreach (var card in hand)
+        {
+            stringBuilder.Append(card.Index);
+            stringBuilder.Append(" ");
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    
+    [ClientRpc]
+    public void UpdateHandClientRpc(string serializedHand, ClientRpcParams clientRpcParams)
+    {
+        Debug.Log("Got hand: " + serializedHand);
     }
 
     // TODO:
@@ -114,9 +176,9 @@ public class GameScript : NetworkBehaviour
 
             for (int i = 0; i < amountOfCards; i++)
             {
-                for (int j = 0; j < Globals.amountOfPlayers; j++)
+                for (int j = 0; j < 1/*Globals.amountOfPlayers*/; j++)
                 {
-                    playerHands[j].Add(deck.TopCard());
+                    //PlayerHands[j].Add(Deck.TopCard());
                 }
             }
 
@@ -124,21 +186,22 @@ public class GameScript : NetworkBehaviour
         }
     }
     
+    /// <returns>The number of stacks for this round</returns>
     private int NumberOfStacks()
     {
         int numOfStacks;
-        if (round > 10)
-            numOfStacks = 21 - round;
-        else
-            numOfStacks = round;
 
+        if (Round > 10)
+            numOfStacks = 21 - Round;
+        else
+            numOfStacks = Round;
         
 
-        if (numOfStacks * Globals.amountOfPlayers > deck.cardsAmount)
+        if (numOfStacks * NumberOfPlayers > Deck.CardsAmount)
         {
             for (int i = numOfStacks - 1; i > 0; i--)
             {
-                if (i * Globals.amountOfPlayers <= deck.cardsAmount)
+                if (i * NumberOfPlayers <= Deck.CardsAmount)
                 {
                     numOfStacks = i;
                 }
@@ -162,9 +225,9 @@ public class GameScript : NetworkBehaviour
 
         // Second check: If nextStackCard's suit is not the currentSuit,
         // verify if there are any cards of currentSuit in the player's hand
-        else if (card.suit != currentSuit && currentSuit != Suit.Joker)
+        else if (card.Suit != currentSuit && currentSuit != Suit.Joker)
         {
-            if (hand.Any(handCard => handCard.suit == currentSuit))
+            if (hand.Any(handCard => handCard.Suit == currentSuit))
             {
                 return false;
             }
@@ -172,7 +235,7 @@ public class GameScript : NetworkBehaviour
             {
                 // Third check: If nextStackCard's suit is not the trumfSuit,
                 // verify if there are any cards of trumfSuit in the player's hand
-                if (card.suit != trumfSuit && trumfSuit != Suit.Joker && hand.Any(handCard => handCard.suit == trumfSuit))
+                if (card.Suit != trumfSuit && trumfSuit != Suit.Joker && hand.Any(handCard => handCard.Suit == trumfSuit))
                 {
                     return false;
                 }
@@ -182,9 +245,4 @@ public class GameScript : NetworkBehaviour
         // Card is eligible
         return true;
     }
-}
-
-public static class Globals
-{
-    public static int amountOfPlayers;
 }

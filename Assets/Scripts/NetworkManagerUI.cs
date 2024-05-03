@@ -11,6 +11,8 @@ public class NetworkManagerUI : MonoBehaviour
     [SerializeField] private Button HostButton;
     [SerializeField] private Button ClientButton;
     [SerializeField] private TMP_InputField JoinCodeTextField;
+    
+    [SerializeField] private Button StartGameButton;
 
     private void Awake()
     {
@@ -28,5 +30,8 @@ public class NetworkManagerUI : MonoBehaviour
         {
             JoinCodeTextField.text = RelayManager.JoinCode;
         };
+
+
+        
     }
 }
