@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class CardVisualizer : MonoBehaviour
 {
-    [SerializeField] Sprite[] PossibleCards;
+    [SerializeField] private Sprite[] PossibleCards;
+    [SerializeField] private GameObject EmptyCardObject;
 
     private Dictionary<(Suit, Rank), Sprite> CardIdentifier;
 
@@ -67,14 +68,21 @@ public class CardVisualizer : MonoBehaviour
         }
     }
 
-    public void VizualieCards(List<Card> cards)
+    public void VisualizeCards(List<Card> cards)
     {
+        if (cards == null || cards.Count == 0)
+        {
+            Debug.Log("Input cards wrong in VisualizeCards.");
+            return;
+        }
+
         foreach (Card card in cards)
         {
-            // Search by suit
-            // Search by rank
+            var sprite = CardIdentifier[(card.suit, card.rank)];
 
-            //CardIdentifier[(card.suit, card.rank)];
+            var gameObject = Instantiate(EmptyCardObject);
+            gameObject.GetComponent<SpriteRenderer>().sprite = sprite;
+            gameObject.GetComponent<Transform>().position = new Vector3(0, 0, 0);
         }
     }
 }
