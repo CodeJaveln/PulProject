@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using System.Text;
+using System;
 
 public class GameScript : NetworkBehaviour
 {
@@ -139,11 +140,26 @@ public class GameScript : NetworkBehaviour
         return stringBuilder.ToString();
     }
 
+    private List<Card> DeserializeHand(string serializedHand)
+    {
+        List<Card> cards = new List<Card>();
+
+        string[] strings = serializedHand.Trim().Split(' ');
+
+        foreach (var item in strings)
+        {
+            cards.Add(Card.AllCards[Convert.ToInt32(item)]);
+        }
+
+        return cards;
+    }
     
     [ClientRpc]
     public void UpdateHandClientRpc(string serializedHand, ClientRpcParams clientRpcParams)
     {
         Debug.Log("Got hand: " + serializedHand);
+
+        CardVisualizer.Instance.VisualizeCards(DeserializeHand(serializedHand));
     }
 
     // TODO:

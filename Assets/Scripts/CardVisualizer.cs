@@ -11,8 +11,19 @@ public class CardVisualizer : MonoBehaviour
 
     private Dictionary<(Suit, Rank), Sprite> CardIdentifier;
 
+    public static CardVisualizer Instance;
+
     private void Start()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        } 
+        else
+        {
+            Destroy(gameObject);
+        }
+
         CardIdentifier = new Dictionary<(Suit, Rank), Sprite>();
 
         for (int i = 0; i < PossibleCards.Length; i++)
