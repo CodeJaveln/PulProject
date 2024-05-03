@@ -24,14 +24,37 @@ public class GameScript : NetworkBehaviour
 
     private int numberOfPlayers;
 
+    [SerializeField] private Button StartGameButton;
+
+    //public bool GameStarted
+    //{
+    //    get;
+    //    private set;
+    //}
+
+    public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false);
+
+
     void Start()
     {
         if (Instance == null)
         {
             Instance = this;
-        } 
+        }
 
-        if (!IsServer) return;
+        NetworkManager.Singleton.ConnectionApprovalCallback += (request, response) =>
+        {
+            response.Approved = true;
+
+            if (GameStarted.Value) 
+            {
+                response.Approved = false;
+                response.Reason = "Game has started";
+            }
+        };
+
+
+        //if (!IsServer) return;
 
         NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
         {
@@ -43,6 +66,7 @@ public class GameScript : NetworkBehaviour
             numberOfPlayers--;
         };
 
+        //NetworkManager.Singleton.ConnectedClientsIds
 
         deck = new Deck();
         
@@ -106,7 +130,9 @@ public class GameScript : NetworkBehaviour
         if (round > 10)
             numOfStacks = 21 - round;
         else
-             numOfStacks = round;
+            numOfStacks = round;
+
+        
 
         if (numOfStacks * Globals.amountOfPlayers > deck.cardsAmount)
         {
