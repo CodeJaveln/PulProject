@@ -64,10 +64,15 @@ public class CardVisualizer : MonoBehaviour
         if (cards == null || cards.Count == 0) 
             throw new ArgumentNullException("cards is null", nameof(cards));
 
-        foreach (Card card in cards)
+        var buttonImage = ButtonPrefab.GetComponent<Image>();
+        float x = (Screen.width - cards.Count * buttonImage.sprite.texture.width) / (float)(1 + cards.Count);
+        float y = buttonImage.sprite.texture.height / (float)2;
+
+        for (int i = 0; i < cards.Count; i++)
         {
-            var sprite = CardIdentifier[(card.Suit, card.Rank)];
-            var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
+            var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
+            
+            var gameObject = Instantiate(ButtonPrefab, new Vector3(x * (i + 1) + i * buttonImage.sprite.texture.width, y, 0), Quaternion.identity, transform);
             gameObject.GetComponent<Image>().overrideSprite = sprite;
         }
     }
