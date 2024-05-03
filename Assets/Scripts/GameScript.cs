@@ -205,6 +205,8 @@ public class GameScript : NetworkBehaviour
     /// <returns>The number of stacks for this round</returns>
     private int NumberOfStacks()
     {
+        return 3;
+
         int numOfStacks;
 
         if (Round > 10)

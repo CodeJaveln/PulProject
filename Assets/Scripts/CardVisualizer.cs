@@ -39,7 +39,7 @@ public class CardVisualizer : MonoBehaviour
             };
 
             Rank cardRank;
-            if (int.TryParse(PossibleCards[i].name[1].ToString(), out int n))
+            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
             {
                 cardRank = (Rank)n;
             }
@@ -64,15 +64,19 @@ public class CardVisualizer : MonoBehaviour
         if (cards == null || cards.Count == 0) 
             throw new ArgumentNullException("cards is null", nameof(cards));
 
-        var buttonImage = ButtonPrefab.GetComponent<Image>();
-        float x = (Screen.width - cards.Count * buttonImage.sprite.texture.width) / (float)(1 + cards.Count);
-        float y = buttonImage.sprite.texture.height / (float)2;
+        Image buttonImage = ButtonPrefab.GetComponent<Image>();
+
+        float x = 150 * (cards.Count - 1) / -2f;
+
+        //float x = (1600 - cards.Count * buttonImage.sprite.texture.width) / (float)(1 + cards.Count);
+        //float y = buttonImage.sprite.texture.height / 2f;
 
         for (int i = 0; i < cards.Count; i++)
         {
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
-            var gameObject = Instantiate(ButtonPrefab, new Vector3(x * (i + 1) + i * buttonImage.sprite.texture.width, y, 0), Quaternion.identity, transform);
+            var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0f);
             gameObject.GetComponent<Image>().overrideSprite = sprite;
         }
     }
