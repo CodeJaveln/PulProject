@@ -46,8 +46,6 @@ public class CardVisualizer : MonoBehaviour
 
             CardIdentifier.Add((cardSuit, cardRank), PossibleCards[i]);
         }
-
-        VisualizeCards(new() { new(Suit.Spades, Rank.Seven, 0) });
     }
 
     public void VisualizeCards(List<Card> cards)
