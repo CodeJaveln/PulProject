@@ -299,7 +299,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ca6e8047f5cf06949bdb30c1315c4b96, type: 3}
   - {fileID: 21300000, guid: 462f7bf065ef59b469fed89df5a20fb2, type: 3}
   - {fileID: 21300000, guid: 7a1f9d77d4b1f7e4f872df31966ee15f, type: 3}
-  EmptyCardObject: {fileID: 9118348011752348008, guid: 160f3b95a5c2c20429fb4555017c8049, type: 3}
+  ButtonPrefab: {fileID: 5810389548959049537, guid: 8db4952dcb444584e894c845d1985a01, type: 3}
 --- !u!4 &977375931
 Transform:
   m_ObjectHideFlags: 0
@@ -308,12 +308,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 977375929}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.1899778, y: 4.011633, z: -0.37958887}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -449.81003, y: -249.73837, z: -0.37958887}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1420100630}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1296500245
 GameObject:
@@ -344,6 +344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 001b0237b22d3664ea3602a8eb4b2dc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  StartGameButton: {fileID: 0}
   GameStarted:
     m_InternalValue: 0
 --- !u!4 &1296500247
@@ -525,6 +526,7 @@ RectTransform:
   m_Children:
   - {fileID: 1786185593}
   - {fileID: 1441850973}
+  - {fileID: 977375931}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -810,4 +812,3 @@ SceneRoots:
   - {fileID: 1296500247}
   - {fileID: 1420100630}
   - {fileID: 1404808672}
-  - {fileID: 977375931}

@@ -58,7 +58,6 @@ public class CardVisualizer : MonoBehaviour
         foreach (Card card in cards)
         {
             var sprite = CardIdentifier[(card.Suit, card.Rank)];
-            (Suit suit, Rank rank) = (card.Suit, card.Rank);
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
             gameObject.GetComponent<Image>().sprite = sprite;
         }
