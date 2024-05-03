@@ -24,6 +24,7 @@
         return suit == card.suit && rank == card.rank;
     }
 
+    // GetHashCode gets the cards hashcode by getting the hashcode from the card
     public override int GetHashCode()
     {
         return index;
