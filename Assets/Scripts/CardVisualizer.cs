@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class CardVisualizer : MonoBehaviour
 {
@@ -57,7 +57,7 @@ public class CardVisualizer : MonoBehaviour
         {
             var sprite = CardIdentifier[(card.Suit, card.Rank)];
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<Image>().sprite = sprite;
+            gameObject.GetComponent<Image>().overrideSprite = sprite;
         }
     }
 }
