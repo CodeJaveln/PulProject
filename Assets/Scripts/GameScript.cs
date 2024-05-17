@@ -7,31 +7,64 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using System.Text;
 using System;
+using UnityEngine.XR;
 
 public class GameScript : NetworkBehaviour
 {
     //[SerializeField] TextMeshProUGUI roundText;
     //[SerializeField] TextMeshProUGUI stackText;
 
+    /// <summary>
+    /// The gamescript singelton. Holds all game info available. The server should have authority
+    /// </summary>
     public static GameScript Instance;
 
+
+    // Game variables
     private Deck Deck;
     private int Round;
     private int Stack;
 
-    private bool dealtCardsForRound;
-
-    private Dictionary<ulong, List<Card>> PlayerHands;
-    private int currentPlayerIndex;
+    private bool DealtCardsForRound;
 
     private int NumberOfPlayers;
 
-    [SerializeField] private Button StartGameButton;
+    public List<PlayerInfo> Players;
+    private Dictionary<ulong, List<Card>> PlayerHands;
+
+    public Card TrumpCard;
 
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false);
+    private int CurrentPlayerIndex;
+
+    private Dictionary<ulong, byte> PlayerBets;
+
+
+    // UI stuff
+    [SerializeField] private Button StartGameButton;
+    [SerializeField] private Button BetButton;
+    [SerializeField] private TMP_InputField BetInputField;
+
+    public enum GameState
+    {
+        Betting,
+        Gaming,
+        EndOfRound
+    }
+
+    public GameState State;
+
+    private List<Card> CurrentStack = new List<Card>();
+
+    // Hög -> trump -> whatevs
+    // joker wins allways
+    // one round, several piles
+    // only get point if guess = wins. 10 + guess if win
+
 
     void Start()
     {
+        // Make sure only one game instance can exist
         if (Instance == null)
         {
             Instance = this;
@@ -66,28 +99,40 @@ public class GameScript : NetworkBehaviour
 
         StartGameButton.onClick.AddListener(() =>
         {
-            StartGame();
+            if (IsHost) InitializeGame();
+        });
+
+        BetButton.onClick.AddListener(() =>
+        {
+            if (byte.TryParse(BetInputField.text, out byte bet))
+            {
+                SetBetServerRpc(bet, new ServerRpcParams());
+            }
+            
         });
     }
 
-    public void StartGame()
+    public void InitializeGame()
     {
         Deck = new Deck();
         
         Round = 1;
         Stack = 1;
 
-        dealtCardsForRound = false;
+        DealtCardsForRound = false;
 
-        PlayerHands = new Dictionary<ulong, List<Card>>();
+        Players = new List<PlayerInfo>();
+
         for (int i = 0; i < NumberOfPlayers; i++)
         {
-            PlayerHands.Add(NetworkManager.Singleton.ConnectedClientsIds[i], new List<Card>());
+            Players.Add(new PlayerInfo(NetworkManager.Singleton.ConnectedClientsIds[i]));
         }
 
-        
 
-        currentPlayerIndex = 0;
+
+        PlayerBets = new Dictionary<ulong, byte>();
+
+        //currentPlayerIndex = 0;
 
         DealCards();
 
@@ -98,15 +143,22 @@ public class GameScript : NetworkBehaviour
     {
         int amountOfCards = NumberOfStacks();
 
+        PlayerHands = new Dictionary<ulong, List<Card>>();
+
+        for (int i = 0; i < NumberOfPlayers; i++)
+        {
+            PlayerHands.Add(Players[i].NetworkId, new List<Card>());
+        }
+
         for (int i = 0; i < amountOfCards; i++)
         {
             foreach (var playerHand in PlayerHands)
             {
-                playerHand.Value.Add(Deck.TopCard());
+                playerHand.Value.Add(Deck.DrawTopCard());
             }
         }
 
-        dealtCardsForRound = true;
+        DealtCardsForRound = true;
 
         foreach (var hand in PlayerHands)
         {
@@ -123,7 +175,7 @@ public class GameScript : NetworkBehaviour
 
             string serializedHand = SerializeHand(hand.Value);
 
-            UpdateHandClientRpc(serializedHand, clientRpcParams);
+            UpdateClientHandClientRpc(serializedHand, clientRpcParams);
         }
     }
 
@@ -155,11 +207,71 @@ public class GameScript : NetworkBehaviour
     }
     
     [ClientRpc]
-    public void UpdateHandClientRpc(string serializedHand, ClientRpcParams clientRpcParams)
+    public void UpdateClientHandClientRpc(string serializedHand, ClientRpcParams clientRpcParams)
     {
         Debug.Log("Got hand: " + serializedHand);
 
         CardVisualizer.Instance.VisualizeCards(DeserializeHand(serializedHand));
+    }
+
+    [ClientRpc]
+    public void AskForBetClientRpc()
+    {
+        // Notify that we can bet
+    }
+
+    [ClientRpc]
+    public void AskForCardClientRpc(ClientRpcParams clientRpcParams)
+    {
+        // Notify that we can bet
+    }
+
+    [ServerRpc]
+    public void SetBetServerRpc(byte bet, ServerRpcParams serverRpcParams)
+    {
+        if (State == GameState.Betting)
+        {
+            PlayerBets.TryAdd(serverRpcParams.Receive.SenderClientId, bet);
+            Debug.Log($"Received bet {bet} from {serverRpcParams.Receive.SenderClientId}");
+        }
+
+    }
+
+    [ServerRpc]
+    public void PlayCardServerRpc(int card, ServerRpcParams serverRpcParams)
+    {
+        // Player id to index
+
+        ulong senderId = serverRpcParams.Receive.SenderClientId;
+
+
+        // Check that the correct player is sending the package
+        if (Players.IndexOf(Players.Find(x => x.NetworkId == senderId)) == CurrentPlayerIndex)
+        {
+            CurrentStack.Add(Card.AllCards[card]);
+            PlayerHands[senderId].Remove(Card.AllCards[card]);
+
+            ClientRpcParams clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[]
+                    {
+                        senderId
+                    }
+                }
+            };
+
+            UpdateClientHandClientRpc(SerializeHand(PlayerHands[senderId]), clientRpcParams);
+
+            CurrentPlayerIndex++;
+            if (CurrentPlayerIndex >= NumberOfPlayers) State = GameState.EndOfRound;
+        }
+
+        //if (Players.Any(x => x.NetworkId == serverRpcParams.Receive.SenderClientId))
+
+        //if ()
+        //CurrentPlayerIndex
     }
 
     // TODO:
@@ -173,36 +285,56 @@ public class GameScript : NetworkBehaviour
     // Repeat round until 20 rounds
     // Show who won all and start over if they want
 
-    [ServerRpc]
-    public void PlayCardServerRpc()
-    {
-
-    }
-
     void Update()
     {
-        return;
+        if (!GameStarted.Value) return;
+
+        switch (State)
+        {
+            case GameState.Betting:
+
+                if (PlayerBetsReady())
+                {
+                    State = GameState.Gaming;
+                }
+
+                break;
+            case GameState.Gaming:
+
+
+
+                break;
+            case GameState.EndOfRound:
+
+
+
+                break;
+            default:
+                break;
+        }
+
 
         //roundText.text = $"Round: {round}";
         //stackText.text = $"Stack: {stack}";
 
-        if (dealtCardsForRound == false)
-        {
-            int amountOfCards = NumberOfStacks();
 
-            for (int i = 0; i < amountOfCards; i++)
-            {
-                for (int j = 0; j < 1/*Globals.amountOfPlayers*/; j++)
-                {
-                    //PlayerHands[j].Add(Deck.TopCard());
-                }
-            }
+    }
 
-            dealtCardsForRound = true;
-        }
+    private void StartRound()
+    {
+        Deck.Reset();
+        TrumpCard = Deck.DrawTopCard();
+
+    }
+
+    private bool PlayerBetsReady()
+    {
+        return PlayerBets.Count == NumberOfPlayers;
     }
     
-    /// <returns>The number of stacks for this round</returns>
+    /// <returns>
+    /// The number of stacks for this round
+    /// </returns>
     private int NumberOfStacks()
     {
         return 3;
@@ -229,11 +361,11 @@ public class GameScript : NetworkBehaviour
         return numOfStacks;
     }
 
-    public static bool IsCardEligible(Card card, Suit currentSuit, Suit trumfSuit, List<Card> hand)
+    public static bool IsCardEligible(Card card, Suit currentSuit, Suit trumpSuit, List<Card> hand)
     {
         // First, check if the player had nextStackCard in their hand
         // Second, check if nextStackCard's suit is of currentSuit, and if not, check if it had any other card of currentSuit on Player hand
-        // Third, check if nextStackCard's suit is of trumfSuit, and if not, check if it had any other card of trumfSuit on Player hand
+        // Third, check if nextStackCard's suit is of trumpSuit, and if not, check if it had any other card of trumpSuit on Player hand
 
         // First check: Verify if the player has the nextStackCard in their hand
         if (!hand.Contains(card))
@@ -251,9 +383,9 @@ public class GameScript : NetworkBehaviour
             }
             else
             {
-                // Third check: If nextStackCard's suit is not the trumfSuit,
-                // verify if there are any cards of trumfSuit in the player's hand
-                if (card.Suit != trumfSuit && trumfSuit != Suit.Joker && hand.Any(handCard => handCard.Suit == trumfSuit))
+                // Third check: If nextStackCard's suit is not the trumpSuit,
+                // verify if there are any cards of trumpSuit in the player's hand
+                if (card.Suit != trumpSuit && trumpSuit != Suit.Joker && hand.Any(handCard => handCard.Suit == trumpSuit))
                 {
                     return false;
                 }

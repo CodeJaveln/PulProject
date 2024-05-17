@@ -40,7 +40,7 @@ class Deck
         //}
     }
 
-    public Card TopCard()
+    public Card DrawTopCard()
     {
         return Cards.Pop();
     }
