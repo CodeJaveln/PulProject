@@ -287,6 +287,8 @@ public class GameScript : NetworkBehaviour
 
     void Update()
     {
+        if (!IsHost) return;
+
         if (!GameStarted.Value) return;
 
         switch (State)
