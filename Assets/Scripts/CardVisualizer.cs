@@ -72,6 +72,17 @@ public class CardVisualizer : MonoBehaviour
 
     private void Update()
     {
+        //switch (GameScript.Instance.State)
+        //{
+        //    case GameScript.GameState.Gaming:
+        //        break;
+        //    default:
+        //        foreach (var card in PlayerCardsObjects)
+        //        {
+        //            card.GetComponent<Button>().interactable = false;
+        //        }
+        //        break;
+        //}
     }
 
     public void VisualizeCards(List<Card> cards)
