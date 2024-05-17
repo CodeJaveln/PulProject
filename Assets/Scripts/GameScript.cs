@@ -306,7 +306,7 @@ public class GameScript : NetworkBehaviour
                 break;
             case GameState.EndOfRound:
 
-
+                Debug.Log("End of round!");
 
                 break;
             default:

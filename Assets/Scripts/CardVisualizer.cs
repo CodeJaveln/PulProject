@@ -18,12 +18,13 @@ public class CardVisualizer : MonoBehaviour
 
     private List<Card> Cards;
     private List<GameObject> PlayerCardsObjects;
+    private List<Button> CardButtons;
 
     private void Start()
     {
         Cards = new();
         PlayerCardsObjects = new();
-        
+        CardButtons = new List<Button>();
         // instance is instance not destroyed
         if (Instance == null)
         {
@@ -88,13 +89,14 @@ public class CardVisualizer : MonoBehaviour
     {
         if (cards == null || cards.Count == 0) 
             throw new ArgumentNullException("cards is null", nameof(cards));
-        
-        Image buttonImage = ButtonPrefab.GetComponent<Image>();
+
+        foreach (var cardObject in PlayerCardsObjects)
+        {
+            Destroy(cardObject);
+        }
 
         float x = 150 * (cards.Count - 1) / -2f;
 
-        //float x = (1600 - cards.Count * buttonImage.sprite.texture.width) / (float)(1 + cards.Count);
-        //float y = buttonImage.sprite.texture.height / 2f;
 
         for (int i = 0; i < cards.Count; i++)
         {
@@ -109,6 +111,12 @@ public class CardVisualizer : MonoBehaviour
                 //image.color = Color.gray;
                 gameObject.GetComponent<Button>().interactable = false;
             }
+            int cardIndex = cards[i].Index;
+            gameObject.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                GameScript.Instance.PlayCardServerRpc(cardIndex, new Unity.Netcode.ServerRpcParams());
+            });
+
             PlayerCardsObjects.Add(gameObject);
         }
     }
