@@ -45,14 +45,9 @@ public class GameScript : NetworkBehaviour
     [SerializeField] private Button BetButton;
     [SerializeField] private TMP_InputField BetInputField;
 
-    public enum GameState
-    {
-        Betting,
-        Gaming,
-        EndOfRound
-    }
+    public NetworkVariable<GameState> State = new NetworkVariable<GameState>(GameState.Betting);
 
-    public GameState State;
+
 
     private List<Card> CurrentStack = new List<Card>();
 
@@ -229,7 +224,7 @@ public class GameScript : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void SetBetServerRpc(byte bet, ServerRpcParams serverRpcParams)
     {
-        if (State == GameState.Betting)
+        if (State.Value == GameState.Betting)
         {
             PlayerBets.TryAdd(serverRpcParams.Receive.SenderClientId, bet);
             Debug.Log($"Received bet {bet} from {serverRpcParams.Receive.SenderClientId}");
@@ -241,7 +236,7 @@ public class GameScript : NetworkBehaviour
     public void PlayCardServerRpc(int card, ServerRpcParams serverRpcParams)
     {
         // Player id to index
-        if (State != GameState.Gaming) return;
+        if (State.Value != GameState.Gaming) return;
         ulong senderId = serverRpcParams.Receive.SenderClientId;
 
 
@@ -265,7 +260,7 @@ public class GameScript : NetworkBehaviour
             UpdateClientHandClientRpc(SerializeHand(PlayerHands[senderId]), clientRpcParams);
 
             CurrentPlayerIndex++;
-            if (CurrentPlayerIndex >= NumberOfPlayers) State = GameState.EndOfRound;
+            if (CurrentPlayerIndex >= NumberOfPlayers) State.Value = GameState.EndOfRound;
         }
 
         //if (Players.Any(x => x.NetworkId == serverRpcParams.Receive.SenderClientId))
@@ -291,13 +286,13 @@ public class GameScript : NetworkBehaviour
 
         if (!GameStarted.Value) return;
 
-        switch (State)
+        switch (State.Value)
         {
             case GameState.Betting:
 
                 if (PlayerBetsReady())
                 {
-                    State = GameState.Gaming;
+                    State.Value = GameState.Gaming;
                 }
 
                 break;
