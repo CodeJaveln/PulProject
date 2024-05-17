@@ -33,6 +33,8 @@ public class GameScript : NetworkBehaviour
     private Dictionary<ulong, List<Card>> PlayerHands;
 
     public Card TrumpCard;
+    //public NetworkVariable<int> TrumpCard = new NetworkVariable<int>(GameState.Betting);
+
 
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false);
     private int CurrentPlayerIndex;

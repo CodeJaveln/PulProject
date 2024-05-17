@@ -98,7 +98,7 @@ public class CardVisualizer : MonoBehaviour
         {
             Destroy(cardObject);
         }
-
+        PlayerCardsObjects = new List<GameObject>();
         float x = 150 * (cards.Count - 1) / -2f;
 
 
