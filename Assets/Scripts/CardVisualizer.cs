@@ -72,17 +72,6 @@ public class CardVisualizer : MonoBehaviour
 
     private void Update()
     {
-        for (int i = 0; i < Cards.Count; i++)
-        {
-            if (GameScript.IsCardEligible(Cards[i], Suit.Joker, Suit.Joker, Cards))
-            {
-                PlayerCardsObjects[i].GetComponent<Button>().interactable = true;
-            }
-            else
-            {
-                PlayerCardsObjects[i].GetComponent<Button>().interactable = false;
-            }
-        }
     }
 
     public void VisualizeCards(List<Card> cards)
