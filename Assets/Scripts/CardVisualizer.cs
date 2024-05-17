@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,12 +10,21 @@ public class CardVisualizer : MonoBehaviour
     [SerializeField] private Sprite[] PossibleCards;
     [SerializeField] private GameObject ButtonPrefab;
 
+    // Dictionary of sprites based on the tuple of suit and rank
     private Dictionary<(Suit, Rank), Sprite> CardIdentifier;
 
+    // instance of instance
     public static CardVisualizer Instance;
+
+    private List<Card> Cards;
+    private List<GameObject> PlayerCardsObjects;
 
     private void Start()
     {
+        Cards = new();
+        PlayerCardsObjects = new();
+        
+        // instance is instance not destroyed
         if (Instance == null)
         {
             Instance = this;
@@ -59,11 +69,26 @@ public class CardVisualizer : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        for (int i = 0; i < Cards.Count; i++)
+        {
+            if (GameScript.IsCardEligible(Cards[i], Suit.Joker, Suit.Joker, Cards))
+            {
+                PlayerCardsObjects[i].GetComponent<Button>().interactable = true;
+            }
+            else
+            {
+                PlayerCardsObjects[i].GetComponent<Button>().interactable = false;
+            }
+        }
+    }
+
     public void VisualizeCards(List<Card> cards)
     {
         if (cards == null || cards.Count == 0) 
             throw new ArgumentNullException("cards is null", nameof(cards));
-
+        
         Image buttonImage = ButtonPrefab.GetComponent<Image>();
 
         float x = 150 * (cards.Count - 1) / -2f;
@@ -77,7 +102,14 @@ public class CardVisualizer : MonoBehaviour
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
             gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0f);
-            gameObject.GetComponent<Image>().overrideSprite = sprite;
+            var image = gameObject.GetComponent<Image>();
+            image.overrideSprite = sprite;
+            if (!GameScript.IsCardEligible(cards[i], Suit.Joker, Suit.Joker, cards))
+            {
+                //image.color = Color.gray;
+                gameObject.GetComponent<Button>().interactable = false;
+            }
+            PlayerCardsObjects.Add(gameObject);
         }
     }
 }
