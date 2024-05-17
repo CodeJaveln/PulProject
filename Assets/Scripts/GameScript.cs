@@ -226,7 +226,7 @@ public class GameScript : NetworkBehaviour
         // Notify that we can bet
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void SetBetServerRpc(byte bet, ServerRpcParams serverRpcParams)
     {
         if (State == GameState.Betting)
@@ -237,11 +237,11 @@ public class GameScript : NetworkBehaviour
 
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void PlayCardServerRpc(int card, ServerRpcParams serverRpcParams)
     {
         // Player id to index
-
+        if (State != GameState.Gaming) return;
         ulong senderId = serverRpcParams.Receive.SenderClientId;
 
 
