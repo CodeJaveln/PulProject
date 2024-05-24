@@ -1,18 +1,8 @@
-﻿using Unity.Netcode;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-class Player : NetworkBehaviour
+public class Player
 {
-    // TODO:
-    // Implement a way to ask for client's bet
-    // Implement a way to ask for client's card to stack
-
-    public int StickBidAmount()
-    {
-        return 0;
-    }
-
-    public Card CardToStack()
-    {
-        return new Card(Suit.Joker, Rank.Ace, -1);
-    }
+       
 }

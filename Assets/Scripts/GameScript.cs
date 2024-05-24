@@ -11,9 +11,6 @@ using UnityEngine.XR;
 
 public class GameScript : NetworkBehaviour
 {
-    //[SerializeField] TextMeshProUGUI roundText;
-    //[SerializeField] TextMeshProUGUI stackText;
-
     /// <summary>
     /// The gamescript singelton. Holds all game info available. The server should have authority
     /// </summary>
@@ -47,7 +44,7 @@ public class GameScript : NetworkBehaviour
     [SerializeField] private Button BetButton;
     [SerializeField] private TMP_InputField BetInputField;
 
-    public NetworkVariable<GameState> State = new NetworkVariable<GameState>(GameState.Betting);
+    public NetworkVariable<GameState> State = new NetworkVariable<GameState>(global::GameState.Betting);
 
 
 
@@ -105,7 +102,6 @@ public class GameScript : NetworkBehaviour
             {
                 SetBetServerRpc(bet, new ServerRpcParams());
             }
-            
         });
     }
 
@@ -134,6 +130,14 @@ public class GameScript : NetworkBehaviour
         DealCards();
 
         GameStarted.Value = true;
+    }
+
+
+    private void StartRound()
+    {
+        Deck.Reset();
+        TrumpCard = Deck.DrawTopCard();
+        DealCards();
     }
 
     private void DealCards()
@@ -215,30 +219,37 @@ public class GameScript : NetworkBehaviour
     public void AskForBetClientRpc()
     {
         // Notify that we can bet
+        Debug.Log("Yo, go bet!");
     }
 
     [ClientRpc]
     public void AskForCardClientRpc(ClientRpcParams clientRpcParams)
     {
-        // Notify that we can bet
+        Debug.Log("Yo, go bet!");
+        // Notify that we can bet'
     }
 
+    /// <summary>
+    /// Called when client wants to bet
+    /// </summary>
+    /// <param name="bet"></param>
+    /// <param name="serverRpcParams"></param>
     [ServerRpc(RequireOwnership = false)]
     public void SetBetServerRpc(byte bet, ServerRpcParams serverRpcParams)
     {
-        if (State.Value == GameState.Betting)
+        if (State.Value == global::GameState.Betting)
         {
             PlayerBets.TryAdd(serverRpcParams.Receive.SenderClientId, bet);
             Debug.Log($"Received bet {bet} from {serverRpcParams.Receive.SenderClientId}");
         }
-
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void PlayCardServerRpc(int card, ServerRpcParams serverRpcParams)
     {
+        if (State.Value != GameState.PlayingStack) return;
+        
         // Player id to index
-        if (State.Value != GameState.Gaming) return;
         ulong senderId = serverRpcParams.Receive.SenderClientId;
 
 
@@ -264,11 +275,6 @@ public class GameScript : NetworkBehaviour
             CurrentPlayerIndex++;
             if (CurrentPlayerIndex >= NumberOfPlayers) State.Value = GameState.EndOfRound;
         }
-
-        //if (Players.Any(x => x.NetworkId == serverRpcParams.Receive.SenderClientId))
-
-        //if ()
-        //CurrentPlayerIndex
     }
 
     // TODO:
@@ -284,29 +290,32 @@ public class GameScript : NetworkBehaviour
 
     void Update()
     {
+        // Safety checks
         if (!IsHost) return;
-
         if (!GameStarted.Value) return;
 
         switch (State.Value)
         {
-            case GameState.Betting:
+            case GameState.StartOfRound:
 
-                if (PlayerBetsReady())
-                {
-                    State.Value = GameState.Gaming;
-                }
+                StartRound();
+
+                AskForBetClientRpc();
+                State.Value = GameState.Betting;
 
                 break;
-            case GameState.Gaming:
+            case GameState.Betting:
+                if (PlayerBetsReady())
+                {
+                    State.Value = GameState.PlayingStack;
+                }
+                break;
+            case GameState.PlayingStack:
 
-
+                
 
                 break;
             case GameState.EndOfRound:
-
-                Debug.Log("End of round!");
-
                 break;
             default:
                 break;
@@ -319,12 +328,6 @@ public class GameScript : NetworkBehaviour
 
     }
 
-    private void StartRound()
-    {
-        Deck.Reset();
-        TrumpCard = Deck.DrawTopCard();
-
-    }
 
     private bool PlayerBetsReady()
     {

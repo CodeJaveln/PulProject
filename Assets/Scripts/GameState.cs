@@ -4,7 +4,8 @@ using UnityEngine;
 
 public enum GameState
 {
+    StartOfRound,
     Betting,
-    Gaming,
+    PlayingStack,
     EndOfRound
 }
