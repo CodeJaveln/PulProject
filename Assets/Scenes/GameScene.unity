@@ -460,6 +460,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2057787476054476153, guid: b67f2529055f8cd4182363d796fade6c, type: 3}
+      propertyPath: CardStackPrefab
+      value: 
+      objectReference: {fileID: 7056833361358655581, guid: 72961a4269ab56940948bab1ed107f6e, type: 3}
     - target: {fileID: 5466805187827051244, guid: b67f2529055f8cd4182363d796fade6c, type: 3}
       propertyPath: m_Name
       value: HandVisualizer
@@ -1479,7 +1483,8 @@ MonoBehaviour:
   StartGameButton: {fileID: 1773654770}
   BetButton: {fileID: 975200446}
   BetInputField: {fileID: 695814813}
-  State: 0
+  State:
+    m_InternalValue: 0
 --- !u!4 &1093416999
 Transform:
   m_ObjectHideFlags: 0

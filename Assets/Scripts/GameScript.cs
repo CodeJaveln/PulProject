@@ -30,6 +30,7 @@ public class GameScript : NetworkBehaviour
     private Dictionary<ulong, List<Card>> PlayerHands;
 
     public Card TrumpCard;
+    public Card FirstSuitCard = new Card(Suit.Joker, Rank.Ace, -1);
     //public NetworkVariable<int> TrumpCard = new NetworkVariable<int>(GameState.Betting);
 
 

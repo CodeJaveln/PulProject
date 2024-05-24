@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -19,6 +20,7 @@ public class CardVisualizer : MonoBehaviour
     
     // Cards that are visualized
     private List<GameObject> PlayerCardsObjects;
+    private Card[] PlayerCards;
 
     private List<GameObject> StackCardsObjects;
 
@@ -81,9 +83,12 @@ public class CardVisualizer : MonoBehaviour
         switch (GameScript.Instance.State.Value)
         {
             case GameState.PlayingStack:
-                foreach (var card in PlayerCardsObjects)
+                for (int i = 0; i < PlayerCardsObjects.Count; i++)
                 {
-                    card.GetComponent<Button>().interactable = true;
+                    if (GameScript.IsCardEligible(PlayerCards[i], GameScript.Instance.FirstSuitCard.Suit, GameScript.Instance.TrumpCard.Suit, PlayerCards.ToList()))
+                        PlayerCardsObjects[i].GetComponent<Button>().interactable = true;
+                    else
+                        PlayerCardsObjects[i].GetComponent<Button>().interactable = false;
                 }
                 break;
             default:
@@ -97,8 +102,6 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeCardsAsButtons(List<Card> cards)
     {
-            //throw new ArgumentNullException("cards is null or sum.", nameof(cards));
-
         foreach (var cardObject in PlayerCardsObjects)
         {
             Destroy(cardObject);
@@ -124,6 +127,8 @@ public class CardVisualizer : MonoBehaviour
 
             PlayerCardsObjects.Add(gameObject);
         }
+
+        PlayerCards = cards.ToArray();
     }
 
     public void VisualizeStack(List<Card> stack)
