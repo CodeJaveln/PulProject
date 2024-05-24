@@ -15,30 +15,30 @@ public class CardVisualizer : MonoBehaviour
 
     // instance of instance
     public static CardVisualizer Instance;
-
-    private List<Card> Cards;
+    
+    // Cards that are visualized
     private List<GameObject> PlayerCardsObjects;
-    private List<Button> CardButtons;
 
     private void Start()
     {
-        Cards = new();
-        PlayerCardsObjects = new();
-        CardButtons = new List<Button>();
-        // instance is instance not destroyed
+        // Ensure only one instance
         if (Instance == null)
         {
             Instance = this;
-        } 
+        }
         else
         {
             Destroy(gameObject);
+            return;
         }
 
+        PlayerCardsObjects = new();
+        
+        // Prepares card indentifier
         CardIdentifier = new Dictionary<(Suit, Rank), Sprite>();
-
         for (int i = 0; i < PossibleCards.Length; i++)
         {
+            // Checks suit of card
             Suit cardSuit = PossibleCards[i].name[0] switch
             {
                 'H' => Suit.Hearts,
@@ -49,11 +49,14 @@ public class CardVisualizer : MonoBehaviour
                 _ => (Suit)0
             };
 
+            // Checks rank
             Rank cardRank;
-            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
+            // If it isn't a klädd kort then try parse as it has a number on latest
+            if (int.TryParse(PossibleCards[i].name[1].ToString(), out int n))
             {
                 cardRank = (Rank)n;
             }
+            // If it failed to convert to number, then check last character
             else
             {
                 cardRank = PossibleCards[i].name[1] switch
@@ -89,10 +92,10 @@ public class CardVisualizer : MonoBehaviour
         }
     }
 
-    public void VisualizeCards(List<Card> cards)
+    public void VisualizeCardsAsButtons(List<Card> cards)
     {
         if (cards == null || cards.Count == 0) 
-            throw new ArgumentNullException("cards is null", nameof(cards));
+            throw new ArgumentNullException("cards is null or sum.", nameof(cards));
 
         foreach (var cardObject in PlayerCardsObjects)
         {
@@ -123,5 +126,10 @@ public class CardVisualizer : MonoBehaviour
 
             PlayerCardsObjects.Add(gameObject);
         }
+    }
+
+    public void VisualizeStack(List<Card> stack)
+    {
+
     }
 }

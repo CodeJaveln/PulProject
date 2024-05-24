@@ -212,7 +212,7 @@ public class GameScript : NetworkBehaviour
     {
         Debug.Log("Got hand: " + serializedHand);
 
-        CardVisualizer.Instance.VisualizeCards(DeserializeHand(serializedHand));
+        CardVisualizer.Instance.VisualizeCardsAsButtons(DeserializeHand(serializedHand));
     }
 
     [ClientRpc]
