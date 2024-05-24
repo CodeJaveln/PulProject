@@ -19,6 +19,8 @@ public class CardVisualizer : MonoBehaviour
     // Cards that are visualized
     private List<GameObject> PlayerCardsObjects;
 
+    private List<GameObject> StackCardsObjects;
+
     private void Start()
     {
         // Ensure only one instance
@@ -110,14 +112,10 @@ public class CardVisualizer : MonoBehaviour
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0f);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 233F);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
-            if (!GameScript.IsCardEligible(cards[i], Suit.Joker, Suit.Joker, cards))
-            {
-                //image.color = Color.gray;
-                gameObject.GetComponent<Button>().interactable = false;
-            }
+            gameObject.GetComponent<Button>().interactable = false;
             int cardIndex = cards[i].Index;
             gameObject.GetComponent<Button>().onClick.AddListener(() =>
             {
