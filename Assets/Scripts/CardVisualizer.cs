@@ -54,7 +54,7 @@ public class CardVisualizer : MonoBehaviour
             // Checks rank
             Rank cardRank;
             // If it isn't a klädd kort then try parse as it has a number on latest
-            if (int.TryParse(PossibleCards[i].name[1].ToString(), out int n))
+            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
             {
                 cardRank = (Rank)n;
             }
