@@ -97,14 +97,14 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeCardsAsButtons(List<Card> cards)
     {
-        if (cards == null || cards.Count == 0) 
-            throw new ArgumentNullException("cards is null or sum.", nameof(cards));
+            //throw new ArgumentNullException("cards is null or sum.", nameof(cards));
 
         foreach (var cardObject in PlayerCardsObjects)
         {
             Destroy(cardObject);
         }
         PlayerCardsObjects = new List<GameObject>();
+        if (cards == null || cards.Count == 0) return;
         float x = 150 * (cards.Count - 1) / -2f;
 
 
