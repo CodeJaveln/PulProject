@@ -22,7 +22,11 @@ public class CardVisualizer : MonoBehaviour
     private List<GameObject> PlayerCardsObjects;
     private Card[] PlayerCards;
 
+    // Hmm
     private List<GameObject> StackCardsObjects;
+
+    // First card in stack
+    private Card FirstStackCard = new Card(Suit.Joker, Rank.Ace, -1);
 
     private void Start()
     {
@@ -57,7 +61,7 @@ public class CardVisualizer : MonoBehaviour
             // Checks rank
             Rank cardRank;
             // If it isn't a klädd kort then try parse as it has a number on latest
-            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
+            if (int.TryParse(PossibleCards[i].name[1..], out int n))
             {
                 cardRank = (Rank)n;
             }
@@ -85,7 +89,7 @@ public class CardVisualizer : MonoBehaviour
             case GameState.PlayingStack:
                 for (int i = 0; i < PlayerCardsObjects.Count; i++)
                 {
-                    if (GameScript.IsCardEligible(PlayerCards[i], GameScript.Instance.FirstSuitCard.Suit, GameScript.Instance.TrumpCard.Suit, PlayerCards.ToList()))
+                    if (GameScript.IsCardEligible(PlayerCards[i], FirstStackCard.Suit, GameScript.Instance.TrumpCard.Suit, PlayerCards.ToList()))
                         PlayerCardsObjects[i].GetComponent<Button>().interactable = true;
                     else
                         PlayerCardsObjects[i].GetComponent<Button>().interactable = false;
@@ -134,8 +138,9 @@ public class CardVisualizer : MonoBehaviour
     public void VisualizeStack(List<Card> stack)
     {
         if (stack == null || stack.Count == 0)
-            throw new ArgumentException("Don't call before stack exists");
+            return;
 
+        FirstStackCard = stack[0];
         foreach (var card in StackCardsObjects)
         {
             Destroy(card);
