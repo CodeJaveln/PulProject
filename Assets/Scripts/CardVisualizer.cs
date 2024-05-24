@@ -9,6 +9,7 @@ public class CardVisualizer : MonoBehaviour
 {
     [SerializeField] private Sprite[] PossibleCards;
     [SerializeField] private GameObject ButtonPrefab;
+    [SerializeField] private GameObject CardStackPrefab;
 
     // Dictionary of sprites based on the tuple of suit and rank
     private Dictionary<(Suit, Rank), Sprite> CardIdentifier;
@@ -18,6 +19,8 @@ public class CardVisualizer : MonoBehaviour
     
     // Cards that are visualized
     private List<GameObject> PlayerCardsObjects;
+
+    private List<GameObject> StackCardsObjects;
 
     private void Start()
     {
@@ -52,7 +55,7 @@ public class CardVisualizer : MonoBehaviour
             // Checks rank
             Rank cardRank;
             // If it isn't a klädd kort then try parse as it has a number on latest
-            if (int.TryParse(PossibleCards[i].name[1].ToString(), out int n))
+            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
             {
                 cardRank = (Rank)n;
             }
@@ -94,12 +97,14 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeCardsAsButtons(List<Card> cards)
     {
+        if (cards == null || cards.Count == 0) 
+            throw new ArgumentNullException("cards is null or sum.", nameof(cards));
+
         foreach (var cardObject in PlayerCardsObjects)
         {
             Destroy(cardObject);
         }
         PlayerCardsObjects = new List<GameObject>();
-        if (cards == null || cards.Count == 0) return;
         float x = 150 * (cards.Count - 1) / -2f;
 
 
@@ -108,14 +113,9 @@ public class CardVisualizer : MonoBehaviour
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0f);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 250F);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
-            if (!GameScript.IsCardEligible(cards[i], Suit.Joker, Suit.Joker, cards))
-            {
-                //image.color = Color.gray;
-                gameObject.GetComponent<Button>().interactable = false;
-            }
             int cardIndex = cards[i].Index;
             gameObject.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -128,6 +128,26 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeStack(List<Card> stack)
     {
+        if (stack == null || stack.Count == 0)
+            throw new ArgumentException("Don't call before stack exists");
 
+        foreach (var card in StackCardsObjects)
+        {
+            Destroy(card);
+        }
+        StackCardsObjects = new();
+        float x = 150 * (stack.Count - 1) / -2f;
+
+        for (int i = 0; i < stack.Count; i++)
+        {
+            var sprite = CardIdentifier[(stack[i].Suit, stack[i].Rank)];
+
+            var gameObject = Instantiate(CardStackPrefab, Vector3.zero, Quaternion.identity, transform);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x * i * 150f, 0F + 0);
+            var image = gameObject.GetComponent<Image>();
+            image.overrideSprite = sprite;
+
+            StackCardsObjects.Add(gameObject);
+        }
     }
 }
