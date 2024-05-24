@@ -110,7 +110,7 @@ public class GameScript : NetworkBehaviour
         Deck = new Deck();
         
         Round = 1;
-        Stack = 1;
+        Stack = 0;
 
         DealtCardsForRound = false;
 
@@ -201,7 +201,10 @@ public class GameScript : NetworkBehaviour
 
         foreach (var item in strings)
         {
-            cards.Add(Card.AllCards[Convert.ToInt32(item)]);
+            if (int.TryParse(item, out int card)) 
+            {
+                cards.Add(Card.AllCards[card]);
+            }
         }
 
         return cards;
@@ -237,7 +240,7 @@ public class GameScript : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void SetBetServerRpc(byte bet, ServerRpcParams serverRpcParams)
     {
-        if (State.Value == global::GameState.Betting)
+        if (State.Value == GameState.Betting)
         {
             PlayerBets.TryAdd(serverRpcParams.Receive.SenderClientId, bet);
             Debug.Log($"Received bet {bet} from {serverRpcParams.Receive.SenderClientId}");
@@ -251,7 +254,6 @@ public class GameScript : NetworkBehaviour
         
         // Player id to index
         ulong senderId = serverRpcParams.Receive.SenderClientId;
-
 
         // Check that the correct player is sending the package
         if (Players.IndexOf(Players.Find(x => x.NetworkId == senderId)) == CurrentPlayerIndex)
@@ -269,7 +271,6 @@ public class GameScript : NetworkBehaviour
                     }
                 }
             };
-
 
             UpdateClientHandClientRpc(SerializeHand(PlayerHands[senderId]), clientRpcParams);
 
@@ -313,7 +314,9 @@ public class GameScript : NetworkBehaviour
                 break;
             case GameState.PlayingStack:
 
+                //Debug.Log("Playin");
 
+                break;
             case GameState.EndOfStack:
                 Stack++;
                 CurrentPlayerIndex = 0;
@@ -321,6 +324,11 @@ public class GameScript : NetworkBehaviour
                 if (Stack == NumberOfStacks())
                 {
                     State.Value = GameState.EndOfRound;
+                }
+                else
+                {
+                    AskForBetClientRpc();
+                    State.Value = GameState.Betting;
                 }
 
                 break;

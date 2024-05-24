@@ -19,8 +19,6 @@ public class CardVisualizer : MonoBehaviour
     // Cards that are visualized
     private List<GameObject> PlayerCardsObjects;
 
-    private List<GameObject> StackCardsObjects;
-
     private void Start()
     {
         // Ensure only one instance
@@ -54,7 +52,7 @@ public class CardVisualizer : MonoBehaviour
             // Checks rank
             Rank cardRank;
             // If it isn't a klädd kort then try parse as it has a number on latest
-            if (int.TryParse(PossibleCards[i].name.Substring(1), out int n))
+            if (int.TryParse(PossibleCards[i].name[1].ToString(), out int n))
             {
                 cardRank = (Rank)n;
             }
@@ -96,14 +94,12 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeCardsAsButtons(List<Card> cards)
     {
-        if (cards == null || cards.Count == 0) 
-            throw new ArgumentNullException("cards is null or sum.", nameof(cards));
-
         foreach (var cardObject in PlayerCardsObjects)
         {
             Destroy(cardObject);
         }
         PlayerCardsObjects = new List<GameObject>();
+        if (cards == null || cards.Count == 0) return;
         float x = 150 * (cards.Count - 1) / -2f;
 
 
@@ -112,9 +108,14 @@ public class CardVisualizer : MonoBehaviour
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0f);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
+            if (!GameScript.IsCardEligible(cards[i], Suit.Joker, Suit.Joker, cards))
+            {
+                //image.color = Color.gray;
+                gameObject.GetComponent<Button>().interactable = false;
+            }
             int cardIndex = cards[i].Index;
             gameObject.GetComponent<Button>().onClick.AddListener(() =>
             {
