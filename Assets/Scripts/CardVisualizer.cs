@@ -112,10 +112,9 @@ public class CardVisualizer : MonoBehaviour
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 233F);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
-            gameObject.GetComponent<Button>().interactable = false;
             int cardIndex = cards[i].Index;
             gameObject.GetComponent<Button>().onClick.AddListener(() =>
             {
