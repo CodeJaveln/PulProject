@@ -112,7 +112,7 @@ public class CardVisualizer : MonoBehaviour
             var sprite = CardIdentifier[(cards[i].Suit, cards[i].Rank)];
             
             var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
-            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 0);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x + i * 150f, 250F);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
             int cardIndex = cards[i].Index;
@@ -127,6 +127,31 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeStack(List<Card> stack)
     {
+        if (stack == null || stack.Count == 0)
+            throw new ArgumentException("Don't call before stack exists");
 
+        foreach (var card in StackCardsObjects)
+        {
+            Destroy(card);
+        }
+        StackCardsObjects = new();
+        float x = 150 * (stack.Count - 1) / -2f;
+
+        for (int i = 0; i < stack.Count; i++)
+        {
+            var sprite = CardIdentifier[(stack[i].Suit, stack[i].Rank)];
+
+            var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
+            gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x * i * 150f, 0F);
+            var image = gameObject.GetComponent<Image>();
+            image.overrideSprite = sprite;
+            int cardIndex = stack[i].Index;
+            gameObject.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                GameScript.Instance.PlayCardServerRpc(cardIndex, new Unity.Netcode.ServerRpcParams());
+            });
+
+            StackCardsObjects.Add(gameObject);
+        }
     }
 }
