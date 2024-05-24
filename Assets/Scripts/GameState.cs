@@ -7,5 +7,6 @@ public enum GameState
     StartOfRound,
     Betting,
     PlayingStack,
+    EndOfStack,
     EndOfRound
 }

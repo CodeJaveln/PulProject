@@ -44,7 +44,7 @@ public class GameScript : NetworkBehaviour
     [SerializeField] private Button BetButton;
     [SerializeField] private TMP_InputField BetInputField;
 
-    public NetworkVariable<GameState> State = new NetworkVariable<GameState>(global::GameState.Betting);
+    public NetworkVariable<GameState> State = new NetworkVariable<GameState>(GameState.StartOfRound);
 
 
 
@@ -270,10 +270,11 @@ public class GameScript : NetworkBehaviour
                 }
             };
 
+
             UpdateClientHandClientRpc(SerializeHand(PlayerHands[senderId]), clientRpcParams);
 
             CurrentPlayerIndex++;
-            if (CurrentPlayerIndex >= NumberOfPlayers) State.Value = GameState.EndOfRound;
+            if (CurrentPlayerIndex >= NumberOfPlayers) State.Value = GameState.EndOfStack;
         }
     }
 
@@ -312,7 +313,15 @@ public class GameScript : NetworkBehaviour
                 break;
             case GameState.PlayingStack:
 
-                
+
+            case GameState.EndOfStack:
+                Stack++;
+                CurrentPlayerIndex = 0;
+
+                if (Stack == NumberOfStacks())
+                {
+                    State.Value = GameState.EndOfRound;
+                }
 
                 break;
             case GameState.EndOfRound:

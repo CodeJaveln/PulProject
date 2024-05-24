@@ -77,7 +77,7 @@ public class CardVisualizer : MonoBehaviour
     {
         switch (GameScript.Instance.State.Value)
         {
-            case GameState.Gaming:
+            case GameState.PlayingStack:
                 foreach (var card in PlayerCardsObjects)
                 {
                     card.GetComponent<Button>().interactable = true;
