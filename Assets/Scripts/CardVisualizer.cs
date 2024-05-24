@@ -9,6 +9,7 @@ public class CardVisualizer : MonoBehaviour
 {
     [SerializeField] private Sprite[] PossibleCards;
     [SerializeField] private GameObject ButtonPrefab;
+    [SerializeField] private GameObject CardStackPrefab;
 
     // Dictionary of sprites based on the tuple of suit and rank
     private Dictionary<(Suit, Rank), Sprite> CardIdentifier;
@@ -141,15 +142,10 @@ public class CardVisualizer : MonoBehaviour
         {
             var sprite = CardIdentifier[(stack[i].Suit, stack[i].Rank)];
 
-            var gameObject = Instantiate(ButtonPrefab, Vector3.zero, Quaternion.identity, transform);
+            var gameObject = Instantiate(CardStackPrefab, Vector3.zero, Quaternion.identity, transform);
             gameObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(x * i * 150f, 0F);
             var image = gameObject.GetComponent<Image>();
             image.overrideSprite = sprite;
-            int cardIndex = stack[i].Index;
-            gameObject.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                GameScript.Instance.PlayCardServerRpc(cardIndex, new Unity.Netcode.ServerRpcParams());
-            });
 
             StackCardsObjects.Add(gameObject);
         }
