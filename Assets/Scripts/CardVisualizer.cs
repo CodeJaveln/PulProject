@@ -102,8 +102,6 @@ public class CardVisualizer : MonoBehaviour
 
     public void VisualizeCardsAsButtons(List<Card> cards)
     {
-            //throw new ArgumentNullException("cards is null or sum.", nameof(cards));
-
         foreach (var cardObject in PlayerCardsObjects)
         {
             Destroy(cardObject);
