@@ -333,6 +333,9 @@ public class GameScript : NetworkBehaviour
 
                 break;
             case GameState.EndOfRound:
+
+                State.Value = GameState.StartOfRound;
+
                 break;
             default:
                 break;
